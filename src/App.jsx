@@ -65,6 +65,11 @@ export default function App() {
           onRestart={handleRestart}
         />
       )}
+
+      {/* Footer credit */}
+      <footer className="footer-credit">
+        Made by <span className="author">Thaaan184</span>
+      </footer>
     </div>
   );
 }

@@ -133,6 +133,11 @@ button:hover {
   align-items: center;
   margin-bottom: 20px;
 }
+/* Start screen spacing */
+.start-screen {
+  padding-top: 5%; /* kasih jarak dari atas */
+  text-align: center;
+}
 
 .start-screen input {
   width: 70%;
@@ -184,4 +189,19 @@ button:hover {
   display: flex;
   justify-content: center;
   margin-top: 20px;
+}
+
+.footer-credit {
+  margin-top: 5%;
+  padding-bottom: 5%;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.footer-credit .author {
+  color: #38bdf8;
+  font-weight: bold;
 }
