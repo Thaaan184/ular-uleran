@@ -35,11 +35,15 @@ export default function GameBoard({ playerName, onGameOver }) {
   const scoreRef = useRef(score);
   const gameOverRef = useRef(false);
 
+  // 👉 antrian input arah
+  const inputQueue = useRef([]);
+
   useEffect(() => { snakeRef.current = snake; }, [snake]);
   useEffect(() => { dirRef.current = dir; }, [dir]);
   useEffect(() => { foodRef.current = food; }, [food]);
   useEffect(() => { scoreRef.current = score; }, [score]);
 
+  // Reset game
   useEffect(() => {
     gameOverRef.current = false;
     setSnake([{ x: 7, y: 7 }]);
@@ -48,30 +52,39 @@ export default function GameBoard({ playerName, onGameOver }) {
     const f = spawnFood([{ x: 7, y: 7 }]);
     setFood(f);
     foodRef.current = f;
+    inputQueue.current = [];
   }, []);
 
+  // Masukkan input ke queue
   useEffect(() => {
     const handleKey = (e) => {
       const k = e.key.toLowerCase();
       if (!DIRECTIONS[k]) return;
-      const curr = dirRef.current.key;
-      if (OPPOSITE[curr] === k) return;
-      const next = DIRECTIONS[k];
-      setDir(next);
-      dirRef.current = next;
+      inputQueue.current.push(DIRECTIONS[k]);
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
+  // Game loop
   useEffect(() => {
     const id = setInterval(() => {
       if (gameOverRef.current) return;
 
       const s = snakeRef.current;
-      const d = dirRef.current;
+      let d = dirRef.current;
       const f = foodRef.current;
       const currScore = scoreRef.current;
+
+      // 👉 ambil input dari queue
+      if (inputQueue.current.length > 0) {
+        const nextDir = inputQueue.current.shift();
+        if (OPPOSITE[d.key] !== nextDir.key) {
+          d = nextDir;
+          setDir(nextDir);
+          dirRef.current = nextDir;
+        }
+      }
 
       const head = { x: s[0].x + d.x, y: s[0].y + d.y };
       const hitWall =
@@ -82,7 +95,7 @@ export default function GameBoard({ playerName, onGameOver }) {
         gameOverRef.current = true;
         clearInterval(id);
 
-        // 👉 Pesan "YAHH MAATII"
+        // Pesan "YAHH MAATII"
         const deathMsg = document.createElement("div");
         deathMsg.innerText = "YAHH MAATII";
         deathMsg.style.position = "fixed";
@@ -175,12 +188,12 @@ export default function GameBoard({ playerName, onGameOver }) {
       {/* Kontrol tombol panah */}
       <div className="controls">
         <div className="row">
-          <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "w" ? c : DIRECTIONS.w))}>⬆</button>
+          <button onClick={() => inputQueue.current.push(DIRECTIONS.w)}>⬆</button>
         </div>
         <div className="row">
-          <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "a" ? c : DIRECTIONS.a))}>⬅</button>
-          <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "s" ? c : DIRECTIONS.s))}>⬇</button>
-          <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "d" ? c : DIRECTIONS.d))}>➡</button>
+          <button onClick={() => inputQueue.current.push(DIRECTIONS.a)}>⬅</button>
+          <button onClick={() => inputQueue.current.push(DIRECTIONS.s)}>⬇</button>
+          <button onClick={() => inputQueue.current.push(DIRECTIONS.d)}>➡</button>
         </div>
       </div>
     </div>
