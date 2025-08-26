@@ -1,69 +1,118 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const BOARD_SIZE = 15; // 15x15 grid
-const CELL_SIZE = 30; // pixel lebih besar biar jelas
+const BOARD_SIZE = 15;
+const CELL_SIZE = 30;
+
 const DIRECTIONS = {
-  w: { x: 0, y: -1 },
-  a: { x: -1, y: 0 },
-  s: { x: 0, y: 1 },
-  d: { x: 1, y: 0 },
+  w: { x: 0, y: -1, key: "w" },
+  a: { x: -1, y: 0, key: "a" },
+  s: { x: 0, y: 1, key: "s" },
+  d: { x: 1, y: 0, key: "d" },
 };
+const OPPOSITE = { w: "s", s: "w", a: "d", d: "a" };
 
 const snakeColors = ["#4CAF50", "#FFD700", "#FF69B4", "#1E90FF", "#FF4500"];
+
+function spawnFood(snakeArr) {
+  while (true) {
+    const x = Math.floor(Math.random() * BOARD_SIZE);
+    const y = Math.floor(Math.random() * BOARD_SIZE);
+    if (!snakeArr.some((seg) => seg.x === x && seg.y === y)) {
+      return { x, y };
+    }
+  }
+}
 
 export default function GameBoard({ playerName, onGameOver }) {
   const [snake, setSnake] = useState([{ x: 7, y: 7 }]);
   const [food, setFood] = useState({ x: 5, y: 5 });
-  const [dir, setDir] = useState({ x: 1, y: 0 });
+  const [dir, setDir] = useState(DIRECTIONS.d);
   const [score, setScore] = useState(0);
 
-  // kontrol keyboard
+  // Refs untuk loop stabil
+  const snakeRef = useRef(snake);
+  const dirRef = useRef(dir);
+  const foodRef = useRef(food);
+  const scoreRef = useRef(score);
+  const gameOverRef = useRef(false);
+
+  // Sinkronkan refs
+  useEffect(() => { snakeRef.current = snake; }, [snake]);
+  useEffect(() => { dirRef.current = dir; }, [dir]);
+  useEffect(() => { foodRef.current = food; }, [food]);
+  useEffect(() => { scoreRef.current = score; }, [score]);
+
+  // Reset saat mount
+  useEffect(() => {
+    gameOverRef.current = false;
+    setSnake([{ x: 7, y: 7 }]);
+    setDir(DIRECTIONS.d);
+    setScore(0);
+    const f = spawnFood([{ x: 7, y: 7 }]);
+    setFood(f);
+    foodRef.current = f;
+  }, []);
+
+  // Kontrol keyboard (WASD)
   useEffect(() => {
     const handleKey = (e) => {
-      const key = e.key.toLowerCase();
-      if (DIRECTIONS[key]) setDir(DIRECTIONS[key]);
+      const k = e.key.toLowerCase();
+      if (!DIRECTIONS[k]) return;
+      const curr = dirRef.current.key;
+      if (OPPOSITE[curr] === k) return; // cegah belok 180°
+      const next = DIRECTIONS[k];
+      setDir(next);
+      dirRef.current = next;
     };
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
-  // game loop
+  // Game loop (interval sekali saja)
   useEffect(() => {
-    const interval = setInterval(() => {
-      setSnake((prev) => {
-        const head = { x: prev[0].x + dir.x, y: prev[0].y + dir.y };
+    const id = setInterval(() => {
+      if (gameOverRef.current) return;
 
-        // check collision (tembok)
-        if (head.x < 0 || head.x >= BOARD_SIZE || head.y < 0 || head.y >= BOARD_SIZE) {
-          onGameOver(score);
-          return [{ x: 7, y: 7 }];
-        }
+      const s = snakeRef.current;
+      const d = dirRef.current;
+      const f = foodRef.current;
+      const currScore = scoreRef.current;
 
-        // check collision (body)
-        if (prev.some((seg) => seg.x === head.x && seg.y === head.y)) {
-          onGameOver(score);
-          return [{ x: 7, y: 7 }];
-        }
+      const head = { x: s[0].x + d.x, y: s[0].y + d.y };
+      const hitWall =
+        head.x < 0 || head.x >= BOARD_SIZE || head.y < 0 || head.y >= BOARD_SIZE;
+      const hitBody = s.some((seg) => seg.x === head.x && seg.y === head.y);
 
-        let newSnake = [head, ...prev];
+      if (hitWall || hitBody) {
+        // Kunci agar hanya sekali
+        gameOverRef.current = true;
+        clearInterval(id);
+        onGameOver(currScore);
+        return;
+      }
 
-        // makan
-        if (head.x === food.x && head.y === food.y) {
-          setScore((s) => s + 10);
-          setFood({
-            x: Math.floor(Math.random() * BOARD_SIZE),
-            y: Math.floor(Math.random() * BOARD_SIZE),
-          });
-        } else {
-          newSnake.pop();
-        }
+      const eat = head.x === f.x && head.y === f.y;
+      const nextSnake = [head, ...s];
+      if (!eat) {
+        nextSnake.pop();
+        setSnake(nextSnake);
+        snakeRef.current = nextSnake;
+      } else {
+        const newScore = currScore + 10;
+        setScore(newScore);
+        scoreRef.current = newScore;
 
-        return newSnake;
-      });
+        const newFood = spawnFood(nextSnake);
+        setFood(newFood);
+        foodRef.current = newFood;
+
+        setSnake(nextSnake);
+        snakeRef.current = nextSnake;
+      }
     }, 200);
 
-    return () => clearInterval(interval);
-  }, [dir, food, score, onGameOver]);
+    return () => clearInterval(id);
+  }, [onGameOver]);
 
   return (
     <div className="game-page">
@@ -75,34 +124,37 @@ export default function GameBoard({ playerName, onGameOver }) {
         style={{
           width: BOARD_SIZE * CELL_SIZE,
           height: BOARD_SIZE * CELL_SIZE,
+          position: "relative",
+          border: "5px solid #333",
+          borderRadius: 12,
+          margin: "20px auto",
+          background: "#fafafa",
         }}
       >
-        {/* Snake */}
         {snake.map((seg, idx) => (
           <div
             key={idx}
             style={{
-              width: CELL_SIZE - 2,
-              height: CELL_SIZE - 2,
-              background: snakeColors[idx % snakeColors.length],
-              borderRadius: "6px",
               position: "absolute",
               left: seg.x * CELL_SIZE,
               top: seg.y * CELL_SIZE,
+              width: CELL_SIZE - 2,
+              height: CELL_SIZE - 2,
+              borderRadius: 6,
               boxShadow: "0 0 6px rgba(0,0,0,0.3)",
+              background: snakeColors[idx % snakeColors.length],
             }}
           />
         ))}
-        {/* Food */}
         <div
           style={{
-            width: CELL_SIZE - 4,
-            height: CELL_SIZE - 4,
-            background: "radial-gradient(circle, #ff0000, #8b0000)",
-            borderRadius: "50%",
             position: "absolute",
             left: food.x * CELL_SIZE,
             top: food.y * CELL_SIZE,
+            width: CELL_SIZE - 4,
+            height: CELL_SIZE - 4,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, #ff0000, #8b0000)",
             boxShadow: "0 0 10px rgba(255,0,0,0.7)",
           }}
         />
@@ -110,11 +162,11 @@ export default function GameBoard({ playerName, onGameOver }) {
 
       {/* Kontrol tombol panah */}
       <div className="controls">
-        <button onClick={() => setDir(DIRECTIONS.w)}>⬆</button>
+        <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "w" ? c : DIRECTIONS.w))}>⬆</button>
         <div>
-          <button onClick={() => setDir(DIRECTIONS.a)}>⬅</button>
-          <button onClick={() => setDir(DIRECTIONS.s)}>⬇</button>
-          <button onClick={() => setDir(DIRECTIONS.d)}>➡</button>
+          <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "a" ? c : DIRECTIONS.a))}>⬅</button>
+          <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "s" ? c : DIRECTIONS.s))}>⬇</button>
+          <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "d" ? c : DIRECTIONS.d))}>➡</button>
         </div>
       </div>
     </div>
