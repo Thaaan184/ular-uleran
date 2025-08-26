@@ -5,7 +5,7 @@ export default function Leaderboard({ leaderboard }) {
       <ul>
         {leaderboard.length === 0 && <p>Belum ada pemain</p>}
         {leaderboard.map((entry, idx) => (
-          <li key={idx}>
+          <li key={entry.id || idx}>
             <span>{entry.name}</span>
             <span>{entry.score}</span>
           </li>

@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 
 const BOARD_SIZE = 15; // 15x15 grid
-const CELL_SIZE = 20; // pixel
+const CELL_SIZE = 30; // pixel lebih besar biar jelas
 const DIRECTIONS = {
   w: { x: 0, y: -1 },
   a: { x: -1, y: 0 },
   s: { x: 0, y: 1 },
   d: { x: 1, y: 0 },
 };
+
+const snakeColors = ["#4CAF50", "#FFD700", "#FF69B4", "#1E90FF", "#FF4500"];
 
 export default function GameBoard({ playerName, onGameOver }) {
   const [snake, setSnake] = useState([{ x: 7, y: 7 }]);
@@ -64,15 +66,15 @@ export default function GameBoard({ playerName, onGameOver }) {
   }, [dir, food, score, onGameOver]);
 
   return (
-    <div className="game-container">
-      <h2>{playerName} - Score: {score}</h2>
+    <div className="game-page">
+      <h2 className="score-display">
+        {playerName} - Score: {score}
+      </h2>
       <div
         className="board"
         style={{
           width: BOARD_SIZE * CELL_SIZE,
           height: BOARD_SIZE * CELL_SIZE,
-          position: "relative",
-          border: "3px solid black",
         }}
       >
         {/* Snake */}
@@ -80,24 +82,28 @@ export default function GameBoard({ playerName, onGameOver }) {
           <div
             key={idx}
             style={{
-              width: CELL_SIZE,
-              height: CELL_SIZE,
-              background: "green",
+              width: CELL_SIZE - 2,
+              height: CELL_SIZE - 2,
+              background: snakeColors[idx % snakeColors.length],
+              borderRadius: "6px",
               position: "absolute",
               left: seg.x * CELL_SIZE,
               top: seg.y * CELL_SIZE,
+              boxShadow: "0 0 6px rgba(0,0,0,0.3)",
             }}
           />
         ))}
         {/* Food */}
         <div
           style={{
-            width: CELL_SIZE,
-            height: CELL_SIZE,
-            background: "red",
+            width: CELL_SIZE - 4,
+            height: CELL_SIZE - 4,
+            background: "radial-gradient(circle, #ff0000, #8b0000)",
+            borderRadius: "50%",
             position: "absolute",
             left: food.x * CELL_SIZE,
             top: food.y * CELL_SIZE,
+            boxShadow: "0 0 10px rgba(255,0,0,0.7)",
           }}
         />
       </div>
