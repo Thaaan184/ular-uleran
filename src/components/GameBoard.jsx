@@ -29,20 +29,17 @@ export default function GameBoard({ playerName, onGameOver }) {
   const [dir, setDir] = useState(DIRECTIONS.d);
   const [score, setScore] = useState(0);
 
-  // Refs untuk loop stabil
   const snakeRef = useRef(snake);
   const dirRef = useRef(dir);
   const foodRef = useRef(food);
   const scoreRef = useRef(score);
   const gameOverRef = useRef(false);
 
-  // Sinkronkan refs
   useEffect(() => { snakeRef.current = snake; }, [snake]);
   useEffect(() => { dirRef.current = dir; }, [dir]);
   useEffect(() => { foodRef.current = food; }, [food]);
   useEffect(() => { scoreRef.current = score; }, [score]);
 
-  // Reset saat mount
   useEffect(() => {
     gameOverRef.current = false;
     setSnake([{ x: 7, y: 7 }]);
@@ -53,13 +50,12 @@ export default function GameBoard({ playerName, onGameOver }) {
     foodRef.current = f;
   }, []);
 
-  // Kontrol keyboard (WASD)
   useEffect(() => {
     const handleKey = (e) => {
       const k = e.key.toLowerCase();
       if (!DIRECTIONS[k]) return;
       const curr = dirRef.current.key;
-      if (OPPOSITE[curr] === k) return; // cegah belok 180°
+      if (OPPOSITE[curr] === k) return;
       const next = DIRECTIONS[k];
       setDir(next);
       dirRef.current = next;
@@ -68,7 +64,6 @@ export default function GameBoard({ playerName, onGameOver }) {
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
-  // Game loop (interval sekali saja)
   useEffect(() => {
     const id = setInterval(() => {
       if (gameOverRef.current) return;
@@ -84,10 +79,27 @@ export default function GameBoard({ playerName, onGameOver }) {
       const hitBody = s.some((seg) => seg.x === head.x && seg.y === head.y);
 
       if (hitWall || hitBody) {
-        // Kunci agar hanya sekali
         gameOverRef.current = true;
         clearInterval(id);
-        onGameOver(currScore);
+
+        // 👉 Pesan "YAHH MAATII"
+        const deathMsg = document.createElement("div");
+        deathMsg.innerText = "YAHH MAATII";
+        deathMsg.style.position = "fixed";
+        deathMsg.style.top = "50%";
+        deathMsg.style.left = "50%";
+        deathMsg.style.transform = "translate(-50%, -50%)";
+        deathMsg.style.fontSize = "2.5rem";
+        deathMsg.style.color = "red";
+        deathMsg.style.fontWeight = "bold";
+        deathMsg.style.zIndex = "9999";
+        document.body.appendChild(deathMsg);
+
+        setTimeout(() => {
+          document.body.removeChild(deathMsg);
+          onGameOver(currScore);
+        }, 1500);
+
         return;
       }
 
@@ -162,8 +174,10 @@ export default function GameBoard({ playerName, onGameOver }) {
 
       {/* Kontrol tombol panah */}
       <div className="controls">
-        <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "w" ? c : DIRECTIONS.w))}>⬆</button>
-        <div>
+        <div className="row">
+          <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "w" ? c : DIRECTIONS.w))}>⬆</button>
+        </div>
+        <div className="row">
           <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "a" ? c : DIRECTIONS.a))}>⬅</button>
           <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "s" ? c : DIRECTIONS.s))}>⬇</button>
           <button onClick={() => setDir((c) => (OPPOSITE[c.key] === "d" ? c : DIRECTIONS.d))}>➡</button>

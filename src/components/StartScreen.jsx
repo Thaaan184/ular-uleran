@@ -15,14 +15,16 @@ export default function StartScreen({ onStart, leaderboard }) {
   return (
     <div className="start-screen">
       <h1>🐍 Uler-Uleran</h1>
-      <input
-        type="text"
-        placeholder="Masukkan Nama"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        maxLength={8}
-      />
-      <button onClick={handleClick}>Mulai</button>
+      <div className="input-container">
+        <input
+          type="text"
+          placeholder="Masukkan Nama"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={8}
+        />
+        <button onClick={handleClick}>Mulai</button>
+      </div>
       <Leaderboard leaderboard={leaderboard} />
     </div>
   );

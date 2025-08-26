@@ -124,3 +124,64 @@ button:hover {
     margin: 8px 0;
   }
 }
+
+/* Input + button sejajar rapi */
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.start-screen input {
+  width: 70%;
+}
+
+.start-screen button {
+  width: 50%;
+}
+
+/* Highlight pemain di leaderboard game over */
+.leaderboard li.highlight {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* Kontrol arah (D-pad) */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.controls .row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.controls button {
+  width: 50px;
+  height: 50px;
+  font-size: 1.5rem;
+  border-radius: 12px;
+  background: #38bdf8;
+  color: #0f172a;
+  font-weight: bold;
+  transition: all 0.2s ease-in-out;
+}
+
+.controls button:hover {
+  background: #0ea5e9;
+  transform: scale(1.05);
+}
+
+/* Tombol restart Game Over center */
+.restart-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
