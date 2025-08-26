@@ -1,0 +1,39 @@
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f4f4f4;
+}
+
+.app-container {
+  padding: 20px;
+}
+
+.start-screen input {
+  padding: 8px;
+  margin: 10px;
+}
+
+.start-screen button {
+  padding: 10px 20px;
+  margin-bottom: 20px;
+}
+
+.leaderboard ul {
+  list-style: none;
+  padding: 0;
+}
+
+.leaderboard li {
+  display: flex;
+  justify-content: space-between;
+  width: 200px;
+  margin: auto;
+}
+
+.controls {
+  margin-top: 20px;
+}
+.controls button {
+  margin: 5px;
+  padding: 10px;
+}
