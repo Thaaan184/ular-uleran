@@ -11,8 +11,6 @@ const DIRECTIONS = {
 };
 const OPPOSITE = { w: "s", s: "w", a: "d", d: "a" };
 
-const snakeColors = ["#4CAF50", "#FFD700", "#FF69B4", "#1E90FF", "#FF4500"];
-
 function spawnFood(snakeArr) {
   while (true) {
     const x = Math.floor(Math.random() * BOARD_SIZE);
@@ -34,8 +32,6 @@ export default function GameBoard({ playerName, onGameOver }) {
   const foodRef = useRef(food);
   const scoreRef = useRef(score);
   const gameOverRef = useRef(false);
-
-  // 👉 antrian input arah
   const inputQueue = useRef([]);
 
   useEffect(() => { snakeRef.current = snake; }, [snake]);
@@ -43,7 +39,6 @@ export default function GameBoard({ playerName, onGameOver }) {
   useEffect(() => { foodRef.current = food; }, [food]);
   useEffect(() => { scoreRef.current = score; }, [score]);
 
-  // Reset game
   useEffect(() => {
     gameOverRef.current = false;
     setSnake([{ x: 7, y: 7 }]);
@@ -55,7 +50,6 @@ export default function GameBoard({ playerName, onGameOver }) {
     inputQueue.current = [];
   }, []);
 
-  // Masukkan input ke queue
   useEffect(() => {
     const handleKey = (e) => {
       const k = e.key.toLowerCase();
@@ -66,7 +60,6 @@ export default function GameBoard({ playerName, onGameOver }) {
     return () => window.removeEventListener("keydown", handleKey);
   }, []);
 
-  // Game loop
   useEffect(() => {
     const id = setInterval(() => {
       if (gameOverRef.current) return;
@@ -76,7 +69,6 @@ export default function GameBoard({ playerName, onGameOver }) {
       const f = foodRef.current;
       const currScore = scoreRef.current;
 
-      // 👉 ambil input dari queue
       if (inputQueue.current.length > 0) {
         const nextDir = inputQueue.current.shift();
         if (OPPOSITE[d.key] !== nextDir.key) {
@@ -95,7 +87,6 @@ export default function GameBoard({ playerName, onGameOver }) {
         gameOverRef.current = true;
         clearInterval(id);
 
-        // Pesan "YAHH MAATII"
         const deathMsg = document.createElement("div");
         deathMsg.innerText = "YAHH MAATII";
         deathMsg.style.position = "fixed";
@@ -156,21 +147,60 @@ export default function GameBoard({ playerName, onGameOver }) {
           background: "#fafafa",
         }}
       >
-        {snake.map((seg, idx) => (
-          <div
-            key={idx}
-            style={{
-              position: "absolute",
-              left: seg.x * CELL_SIZE,
-              top: seg.y * CELL_SIZE,
-              width: CELL_SIZE - 2,
-              height: CELL_SIZE - 2,
-              borderRadius: 6,
-              boxShadow: "0 0 6px rgba(0,0,0,0.3)",
-              background: snakeColors[idx % snakeColors.length],
-            }}
-          />
-        ))}
+        {snake.map((seg, idx) => {
+          if (idx === 0) {
+            // 👉 Kepala ular
+            return (
+              <div
+                key={idx}
+                style={{
+                  position: "absolute",
+                  left: seg.x * CELL_SIZE,
+                  top: seg.y * CELL_SIZE,
+                  width: CELL_SIZE - 2,
+                  height: CELL_SIZE - 2,
+                  borderRadius: 6,
+                  background: "#006400", // hijau gelap
+                  boxShadow: "0 0 6px rgba(0,0,0,0.5) inset",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  padding: "4px",
+                }}
+              >
+                {/* mata ular */}
+                <div style={{
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "50%",
+                  background: "white"
+                }} />
+                <div style={{
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "50%",
+                  background: "white"
+                }} />
+              </div>
+            );
+          }
+          // 👉 Tubuh ular
+          return (
+            <div
+              key={idx}
+              style={{
+                position: "absolute",
+                left: seg.x * CELL_SIZE,
+                top: seg.y * CELL_SIZE,
+                width: CELL_SIZE - 2,
+                height: CELL_SIZE - 2,
+                borderRadius: 6,
+                background: "#32CD32", // hijau muda
+                boxShadow: "0 0 4px rgba(0,0,0,0.3)",
+              }}
+            />
+          );
+        })}
         <div
           style={{
             position: "absolute",
